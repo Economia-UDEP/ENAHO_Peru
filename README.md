@@ -21,5 +21,4 @@ To be filled in later.
 If you benefit form code in this repository, please cite it in your work as:
 - Universidad de Piura (2024), *Cleaning Encuesta Nacional de Hogares (ENAHO, Peru) dataset*. Github repository - https://github.com/Economia-UDEP/ENAHO_Peru
 
-This code is the result of excellent research assistance by Vladimir Baños Calle (@
-Vladimir1804).
+This code is the result of excellent research assistance by Vladimir Baños Calle (@Vladimir1804).
