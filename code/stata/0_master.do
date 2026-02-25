@@ -92,19 +92,16 @@ global keepvars_msum "conglome vivienda hogar anio ubigeo dominio estrato mieper
 ********************************************************************************
 if ${RUN_PYSCRIPT}{
     
-	python:
-	import os, sys, subprocess
+python:
+import os, sys, subprocess
 
-	CODE = r"${CODE}"
-	DATA  = r"${DATA}"
+CODE = r"${CODE_PYTHON}"
+DATA  = r"${DATA}"
 
-	subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", os.path.join(CODE, "requirements.txt")],
-						  cwd=CODE)
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", os.path.join(CODE, "requirements.txt")],cwd=CODE)
 
-	subprocess.check_call([sys.executable, os.path.join(CODE, "master_enaho.py"),
-						   "--out", DATA, "--reset"],
-						  cwd=CODE)
-	end
+subprocess.check_call([sys.executable, os.path.join(CODE, "master_enaho.py"),"--out", DATA, "--reset"],cwd=CODE)
+end
 	
 }
 
@@ -166,7 +163,7 @@ forvalues yy = ${START_YEAR}/${END_YEAR} {
 					if !_rc local keepvars_ok "`keepvars_ok' `v'"
 				}
 				global keepvars_`mod' "`keepvars_ok'"
-				keep conglome vivienda hogar p204 p207 p208a p209 p210 t211 p215 p216 ${keepvars_msum}  
+				keep conglome vivienda hogar linea  linpe percepho mieperho ${keepvars_msum}  
 				save "`msum'", replace
 	}
 	
