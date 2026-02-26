@@ -1,6 +1,12 @@
 # Encuesta Nacional de Hogares (ENAHO, Peru)
 
-**Languages:** English | [Español](#espanol)
+**Languages:** [English](#english) | [Español](#espanol)
+----
+
+<a id="english"></a>
+
+# English Description
+
 ----
 
 This repository contains Python code that downloads and cleans ENAHO datasets according to the users custom requirements.
@@ -41,7 +47,7 @@ This code is the result of excellent research assistance by Vladimir Baños Call
 
 <a id="espanol"></a>
 
-# Encuesta Nacional de Hogares (ENAHO, Perú)
+# Descripción en Español
 ----
 
 Este repositorio contiene código en Python que descarga y limpia las bases de datos de ENAHO de acuerdo con los requerimientos del usuario.
