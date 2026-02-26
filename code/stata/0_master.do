@@ -17,6 +17,17 @@ clear*
 set more off
 version 16.0
 
+
+** REQUIRED PACKAGES
+foreach cmd in ftools moremata{
+    cap which `cmd'
+    if (_rc) {
+        di as result "Installing command: `cmd'"
+        ssc install `cmd', replace
+    }
+}
+
+
 ********************************************************************************
 **# 0) Path & Setup Parameters
 ********************************************************************************
@@ -37,8 +48,10 @@ global CODE_AUX     "${MAIN}/code/auxiliary"
 global OUTFILE "${OUTPUT}\enaho_${START_YEAR}_${END_YEAR}.dta" // <--- Name your final output  
 
 * Set up whether you want to download and organize raw folders
-global RUN_PYSCRIPT 1 // <--- 0: don't run Python script, 1: run Python script
+global RUN_PYSCRIPT 0 // <--- 0: don't run Python script, 1: run Python script
 
+
+/// TODO ADD THIS FUNCTIONALITY 
 * Set up whether you want to store cleaned files by year
 global SAVE_YEARLY 0   // <--- 0: don't store intermediate yearly files, 1: store
 
@@ -48,15 +61,17 @@ global VERBOSE 1 // <--- 0: no messages, 1: messages along the way
 ********************************************************************************
 **# 0.1) Set up modules and variables to keep (empty lists are allowed)
 ********************************************************************************
+/// TODO: ONLY TESTED IF YOU INCLUDE ALL MODULES SO FAR. CHECK WHAT NEEDS TO CHANGE ONCE WE ALLOW FOR MIXED MODULES.
 
 * Módulo 100: Dwelling and Household Information 
 global m100 = 1  // <--- 0: exclude, 1: include
 global keepvars_m100 ///
-	"ubigeo dominio estrato p101 p102 p103 p104 p105"
+	"ubigeo dominio estrato codccpp nomccpp longitud latitud altitud"
 
 * Módulo 200: Household Members Characteristics 
 global m200 = 1  // <--- 0: exclude, 1: include. Current version always stores this.
 global keepvars_m200 ///
+	"p204 p207 p208a p208a1 p209 p210 t211 p215 p216 " ///
 	"ubigeo dominio estrato p203 p204 p205 p206 p207 p208a p208a1 p208a2 p209 p210 t211"
 
 * Módulo 300: Education
@@ -74,15 +89,16 @@ global m500 = 1 // <--- 0: exclude, 1: include
 global keepvars_m500  ///
 	"p501 p502 p503 " ///
     "p5041 p5042 p5043 p5044 p5045 p5046 p5047 p5048 p5049 p50410 p50411 " ///
-    "p506 p506r4 p507 p510 p510a1 p512a p512b p514 p519 " ///
+    "p506 p506r4 p507 p510 p510a1 p512a p512b p513a1 p513a2 p514 p517 p519 p523 p524a1 p524e1 p538a1 p538e1 p530a p541a " ///
     "p545 p546 p547 p548 p549 p550 " ///
     "p550_1 p550_2 p550_3 p550_4 p550_5 p550_6 p550_7 " ///
-    "p5566a p599 ocu500 ocupinf emplpsec fac500a" ///
+    "p5566a p599 ocu500 ocupinf emplpsec fac500a " ///
 	"i513t i518 i520 i530a i524a1 i524b1 i524c1 i524d1 i524e1 i538a1 i538b1 i538c1 i538d1 i538e1 i5294b i5404b i541a"
 
 * Módulo Sumaria: Summary (Constructed) Variables by INEI
 global msum = 1 // <--- 0: exclude, 1: include
-global keepvars_msum "conglome vivienda hogar anio ubigeo dominio estrato mieperho percepho linpe pobreza inghog1d gashog1d"
+global keepvars_msum ///
+	"anio ubigeo dominio estrato mieperho percepho linpe pobreza percepho mieperho  "
 
 ** IMPORTANT: Other modules are not supported for the time being.
 
@@ -105,85 +121,123 @@ end
 	
 }
 
+
 ********************************************************************************
-**# 2) Loop over years 
+**# 2) Informality measures not constructed for years 2024+. Fix the raw file.
+********************************************************************************
+
+use "${DATA}/raw_2024\enaho01a-2024-500", clear 
+merge 1:1 conglome vivienda hogar codperso using "${DATA}/raw_2024\enaho01a-2024-400.dta", keepusing (p419*) keep(1 3) nogen
+do "${CODE_AUX}/informality_construction_INEI.do"
+save, replace 
+
+
+********************************************************************************
+**# 3) Loop over years 
 ********************************************************************************
 
 
 * We set tempfile names for each year 
-forval j=$START_YEAR/$END_YEAR {
-	tempfile enaho`j'
-	loc enaho`j' = "`enaho`j''"
+forvalues j = $START_YEAR / $END_YEAR {
+    tempfile enaho`j'
 }
 
 * Next, we run the loop
-forvalues yy = ${START_YEAR}/${END_YEAR} {
+forvalues yy = $START_YEAR / $END_YEAR {
 
-    if ${VERBOSE} {  
-					di "Cleaning ENAHO `yy'" 
-			      }
+    if ${VERBOSE} di as txt "Cleaning ENAHO `yy'"
 
-				  
-	** STEP 1: define tempfiles for all possible module names
-	
+    ** STEP 1: define tempfiles for all possible module names
     tempfile msum m100 m200 m300 m400 m500
 
-    ** STEP 2: Load each module and merge. Code ensures variables exist in the data.
-	
-	use "${DATA}/raw_`yy'\enaho01-`yy'-200", clear // Module 200 stored by default.
-	ren *, lower 
-	loc keepvars_ok ""
-	foreach v of global keepvars_m200 {
-		capture confirm variable `v'
-		if !_rc local keepvars_ok "`keepvars_ok' `v'"
-	}
-	global keepvars_m200 "`keepvars_ok'"
-	keep conglome vivienda hogar codperso p204 p207 p208a p208a1 p209 p210 t211 p215 p216 ${keepvars_m200}  
-	save "`m200'", replace
-	
-	foreach mod in 100 300 400 500{
-	        use "${DATA}/raw_`yy'\enaho01-`yy'-`mod'", clear
-			ren *, lower 
-			loc keepvars_ok ""
-			foreach v of global keepvars_m`mod' {
-				capture confirm variable `v'
-				if !_rc local keepvars_ok "`keepvars_ok' `v'"
-			}
-			global keepvars_`mod' "`keepvars_ok'"
-			keep conglome vivienda hogar codperso p204 p207 p208a p208a1 p209 p210 t211 p215 p216 ${keepvars_m`mod'}  
-			save "`m`mod''", replace					
-	}
-	
-	if ${msum}==1 {	
-				use "${DATA}/raw_`yy'\sumaria-`yy'", clear 
-				ren *, lower 
-				loc keepvars_ok ""
-				foreach v of global keepvars_m`mod' {
-					capture confirm variable `v'
-					if !_rc local keepvars_ok "`keepvars_ok' `v'"
-				}
-				global keepvars_`mod' "`keepvars_ok'"
-				keep conglome vivienda hogar linea  linpe percepho mieperho ${keepvars_msum}  
-				save "`msum'", replace
-	}
-	
-	** STEP 3: Merge modules using Module 200 as the master file
-	
-	use "`m200'", clear 
-	merge 1:1 conglome vivienda hogar codperso using "`m300'", keep(1 3) nogen    
-	merge 1:1 conglome vivienda hogar codperso using "`m400'", keep(1 3) nogen   
-	merge 1:1 conglome vivienda hogar codperso using "`m500'", keep(1 3) nogen   
-	merge 1:1 conglome vivienda hogar 		   using "`m100'", keep(1 3) nogen 
-	merge 1:1 conglome vivienda hogar          using "`msum'", keep(1 3) nogen 
-	
-	cap drop year 
-	gen int year = `yy'
-	la var year "Year"
-	order year, first
-		
-	compress
-	save `enaho`yy'', replace 
-	
+    * Keys
+    local key_hh   "conglome vivienda hogar"
+    local key_pers "`key_hh' codperso"
+
+    ** STEP 2: Load each module and save cleaned tempfiles
+
+    * -----------------
+    * Module 200 (master)
+    * -----------------
+    use "${DATA}/raw_`yy'\enaho01-`yy'-200", clear
+
+    local keepvars_m200 ""
+    foreach v of global keepvars_m200 {
+        capture confirm variable `v'
+        if !_rc local keepvars_m200 "`keepvars_m200' `v'"
+    }
+
+    keep `key_pers' `keepvars_m200'
+    * optional integrity check (will error if duplicates)
+    isid `key_pers'
+    qui save "`m200'", replace
+
+    * -----------------
+    * Modules 100, 300, 400, 500
+    * -----------------
+    foreach mod in 100 300 400 500 {
+
+        if `mod'==100 {
+            use "${DATA}/raw_`yy'\enaho01-`yy'-`mod'", clear
+        }
+        else {
+            use "${DATA}/raw_`yy'\enaho01a-`yy'-`mod'", clear
+        }
+
+        * IMPORTANT: store in local keepvars_m`mod' (consistent with later `keep`)
+        local keepvars_m`mod' ""
+        foreach v of global keepvars_m`mod' {
+            capture confirm variable `v'
+            if !_rc local keepvars_m`mod' "`keepvars_m`mod'' `v'"
+        }
+
+        if `mod'==100 {
+            keep `key_hh' `keepvars_m`mod''
+            isid `key_hh'
+        }
+        else {
+            keep `key_pers' `keepvars_m`mod''
+            isid `key_pers'
+        }
+
+        qui save "`m`mod''", replace
+    }
+
+    * -----------------
+    * Sumaria (optional)
+    * -----------------
+    if ${msum}==1 {
+        use "${DATA}/raw_`yy'\sumaria-`yy'", clear
+
+        local keepvars_msum ""
+        foreach v of global keepvars_msum {
+            capture confirm variable `v'
+            if !_rc local keepvars_msum "`keepvars_msum' `v'"
+        }
+
+        keep `key_hh' `keepvars_msum'
+        isid `key_hh'
+        qui save "`msum'", replace
+    }
+
+    ** STEP 3: Merge modules using Module 200 as the master file
+    use "`m200'", clear
+    merge 1:1 `key_pers' using "`m300'", keep(1 3) nogen nolabel
+    merge 1:1 `key_pers' using "`m400'", keep(1 3) nogen nolabel
+    merge 1:1 `key_pers' using "`m500'", keep(1 3) nogen nolabel
+    merge m:1 `key_hh'   using "`m100'", keep(1 3) nogen nolabel
+
+    if ${msum}==1 {
+        merge m:1 `key_hh' using "`msum'", keep(1 3) nogen nolabel
+    }
+
+    cap drop year
+    qui gen int year = `yy'
+    qui label var year "Year"
+    qui order year, first
+
+    qui compress
+    qui save `enaho`yy'', replace
 }
 
 
@@ -200,18 +254,9 @@ forval j=`i'/$END_YEAR {
 	append using `enaho`j'', nolab force
 }
 
-* Run cleaning do files
-do "${CODE}/clean_mod200.do"
+* Run cleaning do file
+qui do "${CODE_STATA}/1_clean_enaho.do"
 
-foreach mod in 100 300 400 500{
-    if ${m`mod'} {
-	    do "${CODE}/clean_mod`mod'.do"
-	}
-}
-
-if ${msum} {
-	do "${CODE}/clean_sumaria.do"
-}
 
 compress
 
