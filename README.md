@@ -8,7 +8,7 @@
 
 # English Description
 
-----
+
 
 This repository contains Python code that downloads and cleans ENAHO datasets according to the users custom requirements.
 
@@ -61,7 +61,7 @@ If you find an issue or have suggestions, please open a GitHub issue in this rep
 <a id="espanol"></a>
 
 # Descripción en Español
-----
+
 
 Este repositorio contiene código en Python que descarga y limpia las bases de datos de ENAHO de acuerdo con los requerimientos del usuario.
 
