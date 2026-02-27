@@ -37,7 +37,7 @@ The pipeline is designed to be **user-customizable**: you edit a small set of op
 ## Credits
 
 
-If you benefit form code in this repository, please cite it in your work as:
+If you benefit from the code in this repository, please cite it in your work as:
 - Universidad de Piura (2026), *Cleaning Encuesta Nacional de Hogares (ENAHO, Peru) dataset*. Github repository - https://github.com/Economia-UDEP/ENAHO_Peru
 
 This code is the result of excellent research assistance by Vladimir Baños Calle (@Vladimir1804).
@@ -88,7 +88,7 @@ El flujo está diseñado para ser **personalizable**: usted edita un conjunto pe
 ## Créditos
 
 
-Si este repositorio le resulta útil, por favor cítelo como:
+Si el código de este repositorio le resulta útil, por favor cítelo como:
 - Universidad de Piura (2026), *Cleaning Encuesta Nacional de Hogares (ENAHO, Peru) dataset*. Github repository - https://github.com/Economia-UDEP/ENAHO_Peru
 
 Este código es resultado de una excelente asistencia de investigación por Vladimir Baños Calle (@Vladimir1804).
