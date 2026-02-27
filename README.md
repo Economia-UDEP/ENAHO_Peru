@@ -42,6 +42,13 @@ If you benefit form code in this repository, please cite it in your work as:
 This code is the result of excellent research assistance by Vladimir Baños Calle (@Vladimir1804).
 
 
+## Disclaimer & feedback
+----
+
+This repository is provided as is, without warranty of any kind. While we aim for correctness and reproducibility, the pipeline may contain bugs or require adaptation to changes in ENAHO/INEI file structures.
+
+If you find an issue or have suggestions, please open a GitHub issue in this repository (bug reports, feature requests, and improvements are welcome).
+
 
 <br><br>
 
@@ -84,3 +91,11 @@ Si este repositorio le resulta útil, por favor cítelo como:
 - Universidad de Piura (2026), *Cleaning Encuesta Nacional de Hogares (ENAHO, Peru) dataset*. Github repository - https://github.com/Economia-UDEP/ENAHO_Peru
 
 Este código es resultado de una excelente asistencia de investigación por Vladimir Baños Calle (@Vladimir1804).
+
+
+## Disclaimer y Feedback
+----
+
+Este repositorio se proporciona tal cual, sin garantía de ningún tipo. Aunque buscamos corrección y reproducibilidad, el flujo puede contener errores o requerir ajustes si cambian las estructuras de archivos de ENAHO/INEI.
+
+Si encuentra un problema o tiene sugerencias, por favor abra un issue en este repositorio (son bienvenidos reportes de errores, solicitudes de mejoras y nuevas funcionalidades).
